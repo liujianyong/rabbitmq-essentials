@@ -13,9 +13,9 @@ public class Main
     {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername("ccm-dev");
-        factory.setPassword("coney123");
+        factory.setPassword("admin@123");
         factory.setVirtualHost("ccm-dev-vhost");
-        factory.setHost("localhost");
+        factory.setHost("8.129.129.101");
         factory.setPort(5672);
 
         // simulate dependency management creation and wiring

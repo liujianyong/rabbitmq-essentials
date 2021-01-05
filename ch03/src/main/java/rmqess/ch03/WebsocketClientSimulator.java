@@ -10,19 +10,16 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
 @ClientEndpoint
-public class WebsocketClientSimulator
-{
+public class WebsocketClientSimulator {
     private final long userId, maxUserId;
 
-    public WebsocketClientSimulator(final long userId, final long maxUserId)
-    {
+    public WebsocketClientSimulator(final long userId, final long maxUserId) {
         this.userId = userId;
         this.maxUserId = maxUserId;
     }
 
     @OnOpen
-    public void run(final Session session)
-    {
+    public void run(final Session session) {
         session.setMaxIdleTimeout(0);
 
         final UserSimulator userSimulator = new UserSimulator(userId, maxUserId, session);
@@ -34,28 +31,22 @@ public class WebsocketClientSimulator
     }
 
     @OnMessage
-    public void receivedServerMessage(final String payload)
-    {
+    public void receivedServerMessage(final String payload) {
         System.out.printf("User: %d has received:%s%n", userId, payload);
     }
 
     @OnError
-    public void onError(final Throwable t)
-    {
+    public void onError(final Throwable t) {
         t.printStackTrace();
     }
 
     @OnClose
-    public void onClose(final Session session, final CloseReason closeReason)
-    {
+    public void onClose(final Session session, final CloseReason closeReason) {
         ((UserSimulator) session.getUserProperties().get("userSimulator")).stop();
 
-        try
-        {
+        try {
             ((Thread) session.getUserProperties().get("userThread")).join();
-        }
-        catch (final InterruptedException e)
-        {
+        } catch (final InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }

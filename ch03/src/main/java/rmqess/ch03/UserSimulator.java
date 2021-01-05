@@ -11,8 +11,7 @@ import rmqess.ch02.model.Message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class UserSimulator implements Runnable
-{
+public class UserSimulator implements Runnable {
     private static final String[] TOPICS = {"science", "politics", "sports", "fashion"};
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final long userId, maxUserId;
@@ -20,82 +19,65 @@ public class UserSimulator implements Runnable
     private volatile boolean running;
 
     @Inject
-    public UserSimulator(final long userId, final long maxUserId, final Session session)
-    {
+    public UserSimulator(final long userId, final long maxUserId, final Session session) {
         this.userId = userId;
         this.maxUserId = maxUserId;
         this.session = session;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         running = true;
 
-        while (running && session.isOpen() && !Thread.currentThread().isInterrupted())
-        {
-            try
-            {
-                if (Math.random() < .25)
-                {
+        while (running && session.isOpen() && !Thread.currentThread().isInterrupted()) {
+            try {
+                if (Math.random() < .25) {
                     final long addresseeUserId = 1 + new Random().nextInt((int) maxUserId);
-                    if (addresseeUserId != userId)
-                    {
+                    if (addresseeUserId != userId) {
                         final String jsonMessage = OBJECT_MAPPER.writeValueAsString(new Message().withSenderId(
-                            userId)
-                            .withAddresseeId(addresseeUserId)
-                            .withSubject("Greetings!")
-                            .withContent("Hello from: " + userId)
-                            .withTimeSent(System.currentTimeMillis()));
+                                userId)
+                                .withAddresseeId(addresseeUserId)
+                                .withSubject("Greetings!")
+                                .withContent("Hello from: " + userId)
+                                .withTimeSent(System.currentTimeMillis()));
 
                         session.getBasicRemote().sendText(jsonMessage);
                     }
                 }
 
-                if (Math.random() < .05)
-                {
+                if (Math.random() < .05) {
                     final String topic = TOPICS[new Random().nextInt(TOPICS.length)];
 
                     final String jsonMessage = OBJECT_MAPPER.writeValueAsString(new Message().withSenderId(
-                        userId)
-                        .withTopic(topic)
-                        .withSubject("Something about " + topic)
-                        .withContent("Great content about " + topic)
-                        .withTimeSent(System.currentTimeMillis()));
+                            userId)
+                            .withTopic(topic)
+                            .withSubject("Something about " + topic)
+                            .withContent("Great content about " + topic)
+                            .withTimeSent(System.currentTimeMillis()));
 
                     session.getBasicRemote().sendText(jsonMessage);
                 }
-            }
-            catch (final Exception e)
-            {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
 
-            try
-            {
+            try {
                 Thread.sleep(1000L);
-            }
-            catch (final InterruptedException ie)
-            {
+            } catch (final InterruptedException ie) {
                 Thread.currentThread().interrupt();
             }
         }
 
-        try
-        {
-            if (session.isOpen())
-            {
+        try {
+            if (session.isOpen()) {
                 session.close();
             }
-        }
-        catch (final IOException e)
-        {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void stop()
-    {
+    public void stop() {
         running = false;
     }
 }

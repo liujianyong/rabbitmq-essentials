@@ -7,5 +7,8 @@ import com.rabbitmq.client.Envelope;
 
 public interface SubscriptionDeliveryHandler
 {
-    void handleDelivery(Channel channel, Envelope envelope, AMQP.BasicProperties properties, byte[] body);
+    void handleDelivery(Channel channel,
+                        Envelope envelope,
+                        AMQP.BasicProperties properties,
+                        byte[] body);
 }

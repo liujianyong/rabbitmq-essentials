@@ -12,8 +12,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
-public class Subscription
-{
+public class Subscription {
     private final static Logger LOGGER = Logger.getLogger(Subscription.class.getName());
 
     private final String queue;
@@ -21,28 +20,22 @@ public class Subscription
 
     private volatile DefaultConsumer consumer;
 
-    public Subscription(final String queue, final SubscriptionDeliveryHandler handler)
-    {
+    public Subscription(final String queue, final SubscriptionDeliveryHandler handler) {
         this.queue = queue;
         this.handler = handler;
     }
 
-    public String start(final Channel channel) throws IOException
-    {
+    public String start(final Channel channel) throws IOException {
         consumer = null;
 
-        if (channel != null)
-        {
-            try
-            {
-                consumer = new DefaultConsumer(channel)
-                {
+        if (channel != null) {
+            try {
+                consumer = new DefaultConsumer(channel) {
                     @Override
                     public void handleDelivery(final String consumerTag,
                                                final Envelope envelope,
                                                final BasicProperties properties,
-                                               final byte[] body) throws IOException
-                    {
+                                               final byte[] body) throws IOException {
                         handler.handleDelivery(channel, envelope, properties, body);
                     }
 
@@ -52,12 +45,10 @@ public class Subscription
                 final String consumerTag = channel.basicConsume(queue, autoAck, consumer);
 
                 LOGGER.info("Consuming queue: " + queue + ": with tag: " + consumerTag + " on channel: "
-                            + channel);
+                        + channel);
 
                 return consumerTag;
-            }
-            catch (final Exception e)
-            {
+            } catch (final Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to start consuming queue: " + queue, e);
                 consumer = null;
             }
@@ -66,59 +57,45 @@ public class Subscription
         return null;
     }
 
-    public void stop()
-    {
+    public void stop() {
         final Channel channel = getChannel();
-        if (channel == null)
-        {
+        if (channel == null) {
             return;
         }
 
         LOGGER.log(Level.INFO, "Stopping subscription: " + this);
 
-        try
-        {
+        try {
             channel.basicCancel(consumer.getConsumerTag());
-        }
-        catch (final Exception e)
-        {
+        } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to cancel subscription: " + this, e);
         }
 
-        try
-        {
+        try {
             channel.close();
-        }
-        catch (final Exception e)
-        {
+        } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to close channel: " + channel, e);
-        }
-        finally
-        {
+        } finally {
             consumer = null;
         }
     }
 
     @Override
-    protected void finalize() throws Throwable
-    {
+    protected void finalize() throws Throwable {
         stop();
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         final ToStringHelper tsh = Objects.toStringHelper(this).addValue(hashCode()).add("queue", queue);
-        if (consumer != null)
-        {
+        if (consumer != null) {
             tsh.add("channel", getChannel());
             tsh.add("consumerTag", consumer.getConsumerTag());
         }
         return tsh.toString();
     }
 
-    public Channel getChannel()
-    {
+    public Channel getChannel() {
         return consumer == null ? null : consumer.getChannel();
     }
 }
